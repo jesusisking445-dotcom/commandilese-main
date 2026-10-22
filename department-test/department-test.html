@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Department Aptitude Test</title>
+<style>
+  :root {
+    --ink: #14213d;
+    --ink-soft: #4a5673;
+    --paper: #f6f7fb;
+    --card: #ffffff;
+    --line: #d9dde8;
+    --green: #0b7a4b;
+    --green-soft: #e3f4ec;
+    --amber: #b7791f;
+    --red: #b3261e;
+    --focus: #2454d6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background-color: var(--paper);
+    background-image: linear-gradient(rgba(246, 247, 251, .88), rgba(246, 247, 251, .9)), url("images/command-optimized.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; margin: 0 0 .5rem; }
+  h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); }
+  h2 { font-size: 1.5rem; }
+  p { margin: 0 0 1rem; }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+  .brand {
+    display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; border-bottom: 4px solid var(--green);
+    background: rgba(255, 255, 255, .94);
+  }
+  .brand b { font-family: Georgia, serif; font-size: 1.05rem; }
+  .brand span { color: var(--ink-soft); font-size: .9rem; }
+  .brand-logo { width: 44px; height: 44px; flex: none; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+
+  .panel { background: rgba(255, 255, 255, .96); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem; margin-top: 1.25rem; }
+  label { display: block; font-weight: 600; margin: 0 0 .25rem; }
+  .field { margin-bottom: 1rem; }
+  input[type=text], input[type=password], select {
+    width: 100%; padding: .7rem .8rem; border: 1.5px solid var(--line); border-radius: 6px; background: #fff;
+  }
+  input:focus, select:focus { border-color: var(--focus); }
+  .hint { color: var(--ink-soft); font-size: .9rem; }
+  .error { color: var(--red); font-weight: 600; min-height: 1.4em; margin: 0 0 .75rem; }
+
+  .btn {
+    display: inline-block; cursor: pointer; border: 0; border-radius: 6px;
+    padding: .75rem 1.3rem; background: var(--green); color: #fff; font-weight: 700;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+  .btn.danger { background: var(--red); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  .row.between { justify-content: space-between; }
+
+  /* Department picker */
+  .depts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .9rem; margin: 1.25rem 0; }
+  .dept {
+    text-align: left; cursor: pointer; background: var(--card); border: 1.5px solid var(--line);
+    border-left: 8px solid var(--c); border-radius: 4px 12px 4px 12px; padding: 1rem 1.1rem;
+  }
+  .dept:hover { border-color: var(--c); box-shadow: 0 3px 0 var(--c); }
+  .dept h2 { color: var(--c); margin-bottom: .25rem; font-size: 1.2rem; }
+  .dept p { margin: 0; color: var(--ink-soft); font-size: .92rem; }
+  .dept small { display: block; margin-top: .5rem; color: var(--red); font-weight: 600; }
+
+  /* Test screen */
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .topbar .who { color: var(--ink-soft); font-size: .92rem; }
+  .timer {
+    font-variant-numeric: tabular-nums; font-family: Georgia, serif; font-size: 2rem; font-weight: 700;
+    color: var(--green); min-width: 5ch; text-align: right;
+  }
+  .timer.warn { color: var(--amber); }
+  .timer.crit { color: var(--red); }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: .5rem 0 1rem; }
+  .bar > div { height: 100%; background: var(--green); width: 100%; transition: width .25s linear; }
+  .bar.warn > div { background: var(--amber); }
+  .bar.crit > div { background: var(--red); }
+
+  .qcount { color: var(--ink-soft); font-weight: 600; margin-bottom: .4rem; }
+  .question-text { font-size: 1.2rem; margin: 0 0 1rem; }
+  .opts { display: grid; gap: .6rem; min-width: 0; border: 0; padding: 0; margin: 0 0 1.25rem; }
+  .opt {
+    display: flex; gap: .8rem; align-items: flex-start; text-align: left; cursor: pointer; width: 100%;
+    background: #fff; border: 1.5px solid var(--line); border-radius: 8px; padding: .8rem 1rem;
+  }
+  .opt:hover { border-color: var(--ink-soft); }
+  .opt:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .opt input { width: 1.25rem; height: 1.25rem; flex: none; margin: .25rem 0 0; accent-color: var(--green); }
+  .opt .k {
+    flex: none; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center;
+    border: 1.5px solid var(--ink-soft); font-weight: 700; font-size: .85rem;
+  }
+  .opt.selected { background: var(--green-soft); border-color: var(--green); }
+  .opt.selected .k { background: var(--green); border-color: var(--green); color: #fff; }
+
+  .navgroup { margin-top: .8rem; }
+  .navgroup h2 { margin: 0 0 .3rem; font-family: inherit; font-size: .9rem; color: var(--ink-soft); }
+  .navgroup .nav { margin-top: 0; }
+  .nav { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.25rem; }
+  .nav button {
+    min-width: 2.75rem; min-height: 2.75rem; border-radius: 6px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-weight: 600;
+  }
+  .nav button.done { background: var(--green-soft); border-color: var(--green); }
+  .nav button.cur { outline: 3px solid var(--ink); outline-offset: 1px; }
+
+  /* Results */
+  .score { font-family: Georgia, serif; font-size: 3.4rem; font-weight: 700; line-height: 1; }
+  .review { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .7rem; }
+  .review li { border: 1px solid var(--line); border-left-width: 6px; border-radius: 6px; padding: .7rem .9rem; background: #fff; }
+  .review li.ok { border-left-color: var(--green); }
+  .review li.bad { border-left-color: var(--red); }
+  .review .ans { font-size: .92rem; color: var(--ink-soft); }
+
+  /* Teacher table */
+  .tablewrap { overflow-x: auto; margin-top: 1rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { background: var(--paper); }
+
+  footer { text-align: center; margin-top: 2rem; }
+  footer button { background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; }
+  .privacy-notice { max-width: 760px; margin: 0 auto 2rem; padding: 0 1rem; color: var(--ink-soft); font-size: .9rem; text-align: left; }
+  .privacy-notice details { padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, .96); }
+  .privacy-notice summary { color: var(--ink); cursor: pointer; font-weight: 700; }
+  .privacy-notice div { padding-top: .75rem; }
+  .privacy-notice p:last-child { margin-bottom: 0; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+  /* In-page dialogs (replace blocked prompt/confirm boxes) */
+  .dlg-back {
+    position: fixed; inset: 0; background: rgba(20, 33, 61, .55); z-index: 50;
+    display: grid; place-items: center; padding: 1rem;
+  }
+  .dlg { background: var(--card); border-radius: 12px; padding: 1.4rem; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .storage-warn { background: #fff4d6; border-bottom: 2px solid var(--amber); padding: .6rem 1rem; font-size: .9rem; }
+
+  @media (max-width: 520px) {
+    .brand { flex-wrap: wrap; }
+    .brand span:last-child { flex-basis: 100%; margin-left: calc(44px + .75rem); }
+    .panel { padding: 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+  @media print { .brand, .btn, footer, .privacy-notice, .nav { display: none; } body { background: #fff; } .panel { border: 0; } }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <img class="brand-logo" src="images/command-optimized.jpg" alt="Command Day Secondary School logo" width="44" height="44" decoding="async">
+  <b id="schoolName"></b>
+  <span>Department Aptitude Test</span>
+</header>
+
+<main class="wrap" id="app" aria-label="Department aptitude test"></main>
+<footer class="privacy-notice">
+  <details>
+    <summary>Student privacy and data use</summary>
+    <div>
+      <p>This test handles a student's name, student ID, class, department, answers, score and test timing to administer assessments and keep results.</p>
+      <p>In this offline app, this information is saved in the browser's storage on this device; the app does not upload it to a school server. Teachers can export results to CSV. Anyone with access to this browser profile or an exported file may be able to see the data.</p>
+      <p>Results remain in this browser until a teacher clears them or browser storage is removed. Exported CSV files are separate and must be securely stored and deleted by the person who exported them.</p>
+      <p>Students or their parents/guardians should direct requests to access, correct or delete data to the school's designated privacy contact. Before using this with students, the school must publish that contact, its lawful basis, retention period and the applicable student/parent rights, and determine whether any additional parent/guardian steps are required.</p>
+      <p>This notice is an operational disclosure, not legal advice or a substitute for the school's approved privacy policy.</p>
+    </div>
+  </details>
+</footer>
+
+<script>
+/* ============================================================
+   1. CONFIGURATION  (edit these values)
+   ============================================================ */
+const CONFIG = {
+  schoolName: "Command Day Secondary School, Ijebu Ode",   // shown at the top of every page
+  testMinutes: 60,                  // hard limit; the test auto-submits at zero
+  questionsPerSubject: 20,          // 5 subjects x 20 = 100 questions per student
+  teacherPin: "1234",               // CHANGE THIS before real use
+  oneAttemptPerDepartment: true,    // a student ID can take each department once
+  shuffle: true                     // shuffle question and option order per student
+};
+
+/* ============================================================
+   2. QUESTION BANK  (edit / add questions here)
+   Every department has 5 subjects. Each subject draws up to
+   questionsPerSubject questions from its bank in SUBJECTS below.
+   Add MORE than 20 questions to a subject and each student gets a different
+   random selection of 20. Add a question with:  Q("text", ["A","B","C","D"], indexOfCorrect)
+   (indexOfCorrect is 0 for the first option, 1 for the second, ...).
+   Subjects shared by departments (Mathematics, English, Physics, Chemistry,
+   Government) use ONE bank, so add questions once.
+   ============================================================ */
+const Q = (q, o, a) => ({ q, o, a });
+
+// Departments and the 5 subjects each one writes (in this order)
+const QUESTION_BANK = {
+  science:    { label: "Science",              color: "#0e7c86", blurb: "Mathematics, English, Physics, Biology, Chemistry.",
+                subjects: ["mathematics", "english", "physics", "biology", "chemistry"] },
+  humanities: { label: "Humanities",           color: "#7a3e8e", blurb: "English, Mathematics, Literature in English, Government, History.",
+                subjects: ["english", "mathematics", "literature", "government", "history"] },
+  business:   { label: "Business / Commercial", color: "#b7791f", blurb: "Mathematics, English, Accounting, Commerce, Government.",
+                subjects: ["mathematics", "english", "accounting", "commerce", "government"] },
+  technology: { label: "Technology",           color: "#2454d6", blurb: "Mathematics, English, Physics, Chemistry, Technical Drawing.",
+                subjects: ["mathematics", "english", "physics", "chemistry", "technicaldrawing"] }
+};
+
+// One bank per subject. SAMPLE QUESTIONS: replace and extend each subject to 20 or more.
+const SUBJECTS = {
+  mathematics: { label: "Mathematics", items: [
+    Q("Simplify 3(x + 4) − 2x.", ["x + 12", "5x + 12", "x + 4", "5x + 4"], 0),
+    Q("Solve for x: 3x − 7 = 11", ["x = 4", "x = 6", "x = 18", "x = 3"], 1),
+    Q("What is the area of a rectangle 8 cm long and 5 cm wide?", ["13 cm²", "26 cm²", "40 cm²", "80 cm²"], 2),
+    Q("What is 25% of 240?", ["24", "48", "60", "120"], 2),
+    Q("What is the value of 2⁵?", ["10", "16", "25", "32"], 3),
+    Q("Find the mean of 4, 6, 8, 10 and 12.", ["6", "8", "10", "40"], 1)
+  ]},
+  english: { label: "English Language", items: [
+    Q("Choose the word closest in meaning to \"abundant\".", ["Plentiful", "Scarce", "Tiny", "Costly"], 0),
+    Q("Choose the correct sentence.", ["Each of the boys have finished his work.", "Each of the boys has finished his work.", "Each of the boys are finished his work.", "Each of the boys finishing his work."], 1),
+    Q("Choose the word opposite in meaning to \"generous\".", ["Kind", "Polite", "Stingy", "Wealthy"], 2),
+    Q("In \"She sings beautifully\", the word \"beautifully\" is a(n):", ["Adjective", "Noun", "Verb", "Adverb"], 3),
+    Q("What is the plural of \"child\"?", ["Childs", "Children", "Childrens", "Childes"], 1),
+    Q("The idiom \"to spill the beans\" means to:", ["Waste food", "Reveal a secret", "Cook a meal", "Make a mistake"], 1)
+  ]},
+  physics: { label: "Physics", items: [
+    Q("What is the SI unit of power?", ["Joule", "Newton", "Watt", "Pascal"], 2),
+    Q("Which instrument measures atmospheric pressure?", ["Thermometer", "Barometer", "Ammeter", "Hygrometer"], 1),
+    Q("Ohm's law is written as:", ["V = IR", "V = I/R", "I = VR", "R = VI"], 0),
+    Q("The energy a body has because of its motion is:", ["Potential energy", "Kinetic energy", "Heat energy", "Chemical energy"], 1),
+    Q("Which of these is a good conductor of electricity?", ["Rubber", "Wood", "Copper", "Glass"], 2),
+    Q("The acceleration due to gravity near the Earth's surface is about:", ["1 m/s²", "10 m/s²", "100 m/s²", "0 m/s²"], 1)
+  ]},
+  biology: { label: "Biology", items: [
+    Q("Which organelle is the site of photosynthesis?", ["Mitochondrion", "Chloroplast", "Nucleus", "Ribosome"], 1),
+    Q("Which blood cells fight infection?", ["Red blood cells", "Platelets", "White blood cells", "Plasma"], 2),
+    Q("The basic unit of heredity is the:", ["Gene", "Tissue", "Organ", "Enzyme"], 0),
+    Q("The loss of water vapour from the leaves of plants is called:", ["Respiration", "Transpiration", "Germination", "Digestion"], 1),
+    Q("Lack of which vitamin causes scurvy?", ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"], 2),
+    Q("An organism that makes its own food is called a(n):", ["Heterotroph", "Parasite", "Saprophyte", "Autotroph"], 3)
+  ]},
+  chemistry: { label: "Chemistry", items: [
+    Q("What is the atomic number of carbon?", ["4", "6", "8", "12"], 1),
+    Q("What is the chemical formula of carbon dioxide?", ["CO", "CO₂", "C₂O", "O₂"], 1),
+    Q("Which of these is a noble gas?", ["Oxygen", "Nitrogen", "Neon", "Chlorine"], 2),
+    Q("Which acid is found in lemon juice?", ["Citric acid", "Sulphuric acid", "Hydrochloric acid", "Nitric acid"], 0),
+    Q("Which method best separates salt from seawater?", ["Filtration", "Evaporation", "Magnetism", "Decantation"], 1),
+    Q("Which gas turns limewater milky?", ["Oxygen", "Hydrogen", "Nitrogen", "Carbon dioxide"], 3)
+  ]},
+  accounting: { label: "Accounting", items: [
+    Q("The book in which transactions are first recorded is the:", ["Ledger", "Journal", "Trial balance", "Balance sheet"], 1),
+    Q("Which of these is a liability?", ["Bank loan", "Cash", "Stock of goods", "Land"], 0),
+    Q("A list of ledger balances used to check arithmetical accuracy is the:", ["Income statement", "Cash book", "Trial balance", "Invoice"], 2),
+    Q("Opening stock ₦5,000, purchases ₦60,000, closing stock ₦10,000. What is the cost of goods sold?", ["₦45,000", "₦55,000", "₦65,000", "₦75,000"], 1),
+    Q("Depreciation is the:", ["Increase in value of an asset", "Cost of buying stock", "Spreading of an asset's cost over its useful life", "Money owed to suppliers"], 2),
+    Q("When goods are sold for cash, which account is credited?", ["Cash account", "Purchases account", "Capital account", "Sales account"], 3)
+  ]},
+  commerce: { label: "Commerce", items: [
+    Q("A trader who sells goods in small quantities to final consumers is a:", ["Retailer", "Wholesaler", "Manufacturer", "Importer"], 0),
+    Q("Which document is proof of ownership of goods carried by sea?", ["Cheque", "Bill of lading", "Receipt", "Invoice"], 1),
+    Q("Which of these is an aid to trade?", ["Farming", "Mining", "Banking", "Fishing"], 2),
+    Q("A stock exchange deals mainly in:", ["Raw materials", "Shares and bonds", "Farm produce", "Furniture"], 1),
+    Q("In hire purchase, the buyer:", ["Owns the goods immediately and pays nothing", "Pays instalments and owns the goods after the final payment", "Returns the goods after use", "Pays only a deposit"], 1),
+    Q("Which of these is a function of a commercial bank?", ["Printing currency", "Setting interest rates for the nation", "Accepting deposits", "Making laws"], 2)
+  ]},
+  government: { label: "Government", items: [
+    Q("The doctrine of separation of powers was advocated by:", ["Karl Marx", "Montesquieu", "Adam Smith", "Plato"], 1),
+    Q("A system where power is shared between a central and regional governments is:", ["Unitary system", "Federalism", "Monarchy", "Dictatorship"], 1),
+    Q("Which body conducts elections in Nigeria?", ["INEC", "EFCC", "NNPC", "CBN"], 0),
+    Q("How many states does Nigeria have?", ["30", "32", "36", "37"], 2),
+    Q("The right to vote and be voted for is called:", ["Citizenship", "Suffrage", "Sovereignty", "Franchise tax"], 1),
+    Q("Nigeria's national legislature is called the:", ["Supreme Court", "Council of State", "National Assembly", "Federal Executive Council"], 2)
+  ]},
+  literature: { label: "Literature in English", items: [
+    Q("A poem of fourteen lines is called a:", ["Ballad", "Sonnet", "Elegy", "Ode"], 1),
+    Q("The main character in a story is the:", ["Antagonist", "Narrator", "Protagonist", "Chorus"], 2),
+    Q("Repetition of consonant sounds at the start of nearby words is:", ["Alliteration", "Assonance", "Metaphor", "Irony"], 0),
+    Q("Who wrote \"Things Fall Apart\"?", ["Wole Soyinka", "Chinua Achebe", "Buchi Emecheta", "Chimamanda Adichie"], 1),
+    Q("Who wrote \"Death and the King's Horseman\"?", ["Wole Soyinka", "J. P. Clark", "Ola Rotimi", "Ngugi wa Thiong'o"], 0),
+    Q("The time and place in which a story happens is its:", ["Plot", "Theme", "Tone", "Setting"], 3)
+  ]},
+  history: { label: "History", items: [
+    Q("Who led the 1804 jihad that founded the Sokoto Caliphate?", ["Usman dan Fodio", "Samori Toure", "Ahmadu Bello", "Mansa Musa"], 0),
+    Q("The Berlin Conference that divided Africa among European powers began in:", ["1804", "1884", "1914", "1960"], 1),
+    Q("The Northern and Southern Protectorates of Nigeria were amalgamated in:", ["1900", "1906", "1914", "1922"], 2),
+    Q("Nigeria became a republic in:", ["1960", "1963", "1966", "1979"], 1),
+    Q("Britain abolished the slave trade in:", ["1707", "1807", "1857", "1907"], 1),
+    Q("Mansa Musa was a famous ruler of the:", ["Oyo Empire", "Benin Kingdom", "Kanem-Bornu", "Mali Empire"], 3)
+  ]},
+  technicaldrawing: { label: "Technical Drawing", items: [
+    Q("Which of these is the hardest pencil grade?", ["HB", "2B", "4H", "6B"], 2),
+    Q("Which instrument is used to draw circles?", ["Set square", "Compasses", "Protractor", "French curve"], 1),
+    Q("A scale of 1:2 means the drawing is:", ["Twice the actual size", "The same as actual size", "Half the actual size", "Ten times the actual size"], 2),
+    Q("Which line type shows hidden details?", ["Thick continuous", "Thin continuous", "Chain line", "Short dashed line"], 3),
+    Q("In orthographic projection, the view seen from the front is the:", ["Plan", "Elevation", "End view", "Section"], 1),
+    Q("What are the dimensions of an A4 sheet?", ["210 × 297 mm", "297 × 420 mm", "148 × 210 mm", "420 × 594 mm"], 0)
+  ]}
+};
+
+/* ============================================================
+   3. STORAGE HELPERS  (browser localStorage, works offline)
+   ============================================================ */
+const KEY_SESSION = "dat.session";   // the test currently in progress (survives page refresh)
+const KEY_RESULTS = "dat.results";   // all finished tests
+const KEY_LAST    = "dat.last";      // most recent result, for the results screen
+
+// Some browsers block localStorage (private mode, some in-app browsers, some file:// setups).
+// If that happens we fall back to memory so the app still works while the page stays open.
+const memStore = {};
+let storageWorks = true;
+try {
+  localStorage.setItem("dat.probe", "1");
+  localStorage.removeItem("dat.probe");
+} catch (e) { storageWorks = false; }
+
+function load(key, fallback) {
+  try {
+    const raw = storageWorks ? localStorage.getItem(key) : memStore[key];
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+function save(key, value) {
+  const raw = JSON.stringify(value);
+  memStore[key] = raw;                       // always keep a memory copy
+  if (storageWorks) {
+    try { localStorage.setItem(key, raw); } catch (e) { storageWorks = false; }
+  }
+  return true;
+}
+function drop(key) {
+  delete memStore[key];
+  if (storageWorks) { try { localStorage.removeItem(key); } catch (e) {} }
+}
+
+/* ============================================================
+   3b. IN-PAGE DIALOGS
+   The browser's built-in prompt() and confirm() boxes are blocked in many
+   browsers and phone apps, which made the Submit and Teacher buttons look
+   dead. These on-page dialogs always work.
+   ============================================================ */
+let dialogOpener = null;
+function closeDialog(restoreFocus = true) {
+  const old = document.getElementById("dlg");
+  if (old) old.remove();
+  if (restoreFocus && dialogOpener && dialogOpener.isConnected) dialogOpener.focus();
+  dialogOpener = null;
+}
+function openDialog({ title, message, input, yesLabel, noLabel, danger, onYes }) {
+  closeDialog(false);
+  dialogOpener = document.activeElement;
+  const box = document.createElement("div");
+  box.id = "dlg";
+  box.className = "dlg-back";
+  box.innerHTML = `
+    <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" aria-describedby="dlgMessage">
+      <h2 id="dlgTitle">${esc(title)}</h2>
+      <p id="dlgMessage">${esc(message || "")}</p>
+      ${input ? `<div class="field"><label class="visually-hidden" for="dlgInput">Teacher PIN</label>
+                   <input type="password" id="dlgInput" autocomplete="off" inputmode="numeric">
+                 </div><p class="error" id="dlgErr" role="alert" aria-live="assertive"></p>` : ""}
+      <div class="row">
+        <button class="btn ${danger ? "danger" : ""}" id="dlgYes">${esc(yesLabel || "OK")}</button>
+        <button class="btn ghost" id="dlgNo">${esc(noLabel || "Cancel")}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(box);
+  const inp = document.getElementById("dlgInput");
+  const yes = () => {
+    const val = inp ? inp.value : null;
+    // onYes may return false to keep the dialog open (e.g. wrong PIN)
+    if (onYes(val) !== false) closeDialog(false);
+  };
+  document.getElementById("dlgYes").addEventListener("click", yes);
+  document.getElementById("dlgNo").addEventListener("click", closeDialog);
+  box.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); yes(); }
+    if (e.key === "Escape") closeDialog();
+    if (e.key === "Tab") {
+      const focusable = Array.from(box.querySelectorAll("button:not(:disabled), input:not(:disabled)"));
+      const current = focusable.indexOf(document.activeElement);
+      const next = (current + (e.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+      e.preventDefault();
+      focusable[next].focus();
+    }
+    e.stopPropagation();          // stop the exam keyboard shortcuts while a dialog is open
+  });
+  (inp || document.getElementById("dlgYes")).focus();
+}
+
+/* ============================================================
+   4. SMALL UTILITIES
+   ============================================================ */
+const app = document.getElementById("app");
+document.getElementById("schoolName").textContent = CONFIG.schoolName;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function fmt(sec) {
+  sec = Math.max(0, Math.ceil(sec));
+  return String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0");
+}
+function subjectText(r) {
+  return Object.entries(r.bySubject || {})
+    .map(([k, v]) => (SUBJECTS[k] ? SUBJECTS[k].label : k) + " " + v[0] + "/" + v[1]).join("; ");
+}
+function normId(id) { return id.trim().toUpperCase(); }
+
+let student = null;      // { name, id, cls } while logged in
+let session = null;      // active test state
+let tickHandle = null;
+
+/* ============================================================
+   5. SCREEN: LOGIN
+   ============================================================ */
+function showLogin(msg) {
+  stopTimer();
+  student = null;
+  app.innerHTML = `
+    <section class="panel">
+      <h1>Student login</h1>
+      <p class="hint">Enter your details, then choose a department. The test lasts ${CONFIG.testMinutes} minutes at most.</p>
+      <p class="error" id="err" role="alert" aria-live="assertive">${esc(msg || "")}</p>
+      <div class="field"><label for="name">Full name</label>
+        <input type="text" id="name" autocomplete="name" required minlength="3" aria-describedby="err" placeholder="Surname first, e.g. Adeyemi Tola"></div>
+      <div class="field"><label for="sid">Student ID or admission number</label>
+        <input type="text" id="sid" autocomplete="off" required minlength="2" aria-describedby="err"></div>
+      <div class="field"><label for="cls">Class</label>
+        <select id="cls" required>
+          ${["JSS 1","JSS 2","JSS 3","SS 1","SS 2","SS 3"].map(c => `<option>${c}</option>`).join("")}
+        </select></div>
+      <button class="btn" data-action="login">Continue</button>
+    </section>
+    <footer><button data-action="teacher-login">Teacher access</button></footer>`;
+  document.getElementById("name").focus();
+}
+
+function doLogin() {
+  const name = document.getElementById("name").value.trim().replace(/\s+/g, " ");
+  const id = normId(document.getElementById("sid").value);
+  const cls = document.getElementById("cls").value;
+  if (name.length < 3) return showLogin("Enter your full name.");
+  if (id.length < 2) return showLogin("Enter your student ID or admission number.");
+  student = { name, id, cls };
+  showDepartments();
+}
+
+/* ============================================================
+   6. SCREEN: DEPARTMENT CHOICE
+   ============================================================ */
+function hasAttempt(id, dept) {
+  return load(KEY_RESULTS, []).some(r => r.id === id && r.dept === dept);
+}
+
+function showDepartments(msg) {
+  app.innerHTML = `
+    <section class="panel">
+      <h1>Choose your department</h1>
+      <p>Welcome, <b>${esc(student.name)}</b> (${esc(student.cls)}). Pick the department you want to be tested in.</p>
+      <p class="error" role="alert" aria-live="assertive">${esc(msg || "")}</p>
+      <div class="depts">
+        ${Object.entries(QUESTION_BANK).map(([key, d]) => `
+          <button class="dept" style="--c:${d.color}" data-action="pick" data-dept="${key}">
+            <h2>${esc(d.label)}</h2>
+            <p>${esc(d.blurb)}</p>
+            ${CONFIG.oneAttemptPerDepartment && hasAttempt(student.id, key) ? "<small>Already completed</small>" : ""}
+          </button>`).join("")}
+      </div>
+      <p class="hint">5 subjects, up to ${CONFIG.questionsPerSubject} questions each. ${CONFIG.testMinutes} minutes in total. The test submits itself when time runs out.</p>
+      <button class="btn ghost" data-action="logout">Log out</button>
+    </section>`;
+  const heading = app.querySelector("h1");
+  heading.tabIndex = -1;
+  heading.focus();
+}
+
+/* ============================================================
+   7. TEST ENGINE
+   ============================================================ */
+function startTest(deptKey) {
+  if (CONFIG.oneAttemptPerDepartment && hasAttempt(student.id, deptKey)) {
+    return showDepartments("You have already taken the " + QUESTION_BANK[deptKey].label + " test. Ask your teacher if you need a retake.");
+  }
+  const dept = QUESTION_BANK[deptKey];
+  const order = [];
+  dept.subjects.forEach(sub => {
+    const bank = SUBJECTS[sub].items;
+    const pool = bank.map((_, i) => i);
+    (CONFIG.shuffle ? shuffled(pool) : pool).slice(0, CONFIG.questionsPerSubject).forEach(qi => {
+      const opts = bank[qi].o.map((_, i) => i);
+      order.push({ sub, qi, opts: CONFIG.shuffle ? shuffled(opts) : opts });   // sub, question, option display order
+    });
+  });
+  session = {
+    student, dept: deptKey,
+    order,
+    answers: {},                       // position in order -> original option index
+    idx: 0,
+    startedAt: Date.now(),
+    endsAt: Date.now() + CONFIG.testMinutes * 60 * 1000
+  };
+  save(KEY_SESSION, session);
+  showQuestion();
+  startTimer();
+}
+
+function resumeSession(s) {
+  session = s;
+  student = s.student;
+  if (Date.now() >= session.endsAt) return finishTest(true);
+  showQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  stopTimer();
+  tickHandle = setInterval(tick, 250);
+  tick();
+}
+function stopTimer() { if (tickHandle) { clearInterval(tickHandle); tickHandle = null; } }
+
+function tick() {
+  if (!session) return;
+  const remaining = (session.endsAt - Date.now()) / 1000;
+  if (remaining <= 0) return finishTest(true);
+  const t = document.getElementById("timer");
+  const b = document.getElementById("bar");
+  if (!t || !b) return;
+  t.textContent = fmt(remaining);
+  b.setAttribute("aria-valuenow", String(Math.ceil(remaining)));
+  const span = CONFIG.testMinutes * 60;
+  const level = remaining <= span * 0.05 ? "crit" : remaining <= span * 0.1 ? "warn" : "";
+  t.className = "timer " + level;
+  b.className = "bar " + level;
+  b.firstElementChild.style.width = (remaining / (CONFIG.testMinutes * 60) * 100) + "%";
+}
+
+function showQuestion() {
+  const d = QUESTION_BANK[session.dept];
+  const pos = session.idx;
+  const entry = session.order[pos];
+  const q = SUBJECTS[entry.sub].items[entry.qi];
+  const chosen = session.answers[pos];
+  const last = pos === session.order.length - 1;
+
+  app.innerHTML = `
+    <section class="panel" style="border-top:6px solid ${d.color}">
+      <h1 class="visually-hidden">${esc(d.label)} test</h1>
+      <div class="topbar">
+        <div><b>${esc(d.label)} test</b><div class="who">${esc(session.student.name)} &middot; ${esc(session.student.id)}</div></div>
+        <div class="timer" id="timer" role="timer" aria-label="Time remaining">--:--</div>
+      </div>
+      <div class="bar" id="bar" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="${CONFIG.testMinutes * 60}" aria-valuenow="${CONFIG.testMinutes * 60}"><div></div></div>
+
+      <div class="qcount" id="qcount" tabindex="-1" aria-live="polite" aria-atomic="true">${esc(SUBJECTS[entry.sub].label)} &middot; Question ${pos + 1} of ${session.order.length}</div>
+      <h2 class="question-text">${esc(q.q)}</h2>
+      <fieldset class="opts" aria-describedby="qcount">
+        <legend class="visually-hidden">${esc(q.q)}</legend>
+        ${entry.opts.map((orig, shown) => `
+          <label class="opt ${chosen === orig ? "selected" : ""}">
+            <input type="radio" name="answer" value="${orig}" ${chosen === orig ? "checked" : ""}>
+            <span class="visually-hidden">Option ${"ABCD"[shown]}: </span>
+            <span class="k" aria-hidden="true">${"ABCD"[shown]}</span><span>${esc(q.o[orig])}</span>
+          </label>`).join("")}
+      </fieldset>
+
+      <div class="row between">
+        <button class="btn ghost" data-action="prev" ${pos === 0 ? "disabled" : ""}>Previous</button>
+        ${last
+          ? `<button class="btn" data-action="submit">Submit test</button>`
+          : `<button class="btn" data-action="next">Next</button>`}
+      </div>
+
+      ${navHtml(pos)}
+      <p class="hint" style="margin-top:1rem">Choose an answer with the radio controls. Use the Previous, Next, or numbered question buttons to navigate.</p>
+    </section>`;
+  tick();
+  const focusTarget = document.querySelector('input[name="answer"]:checked') || document.getElementById("qcount");
+  if (focusTarget) focusTarget.focus();
+}
+
+// Question navigator, grouped by subject so students can jump between sections
+function navHtml(pos) {
+  let html = '<nav aria-label="Question navigation">', cur = null;
+  session.order.forEach((e, i) => {
+    if (e.sub !== cur) {
+      if (cur !== null) html += "</div></div>";
+      cur = e.sub;
+      html += `<div class="navgroup"><h2>${esc(SUBJECTS[cur].label)}</h2><div class="nav">`;
+    }
+    html += `<button class="${session.answers[i] !== undefined ? "done" : ""} ${i === pos ? "cur" : ""}"
+      data-action="goto" data-i="${i}" aria-label="Question ${i + 1}, ${session.answers[i] !== undefined ? "answered" : "unanswered"}${i === pos ? ", current" : ""}"${i === pos ? ' aria-current="step"' : ""}>${i + 1}</button>`;
+  });
+  return html + "</div></div></nav>";
+}
+
+function setAnswer(orig) {
+  session.answers[session.idx] = orig;
+  save(KEY_SESSION, session);
+  showQuestion();
+}
+function goTo(i) {
+  if (i < 0 || i >= session.order.length) return;
+  session.idx = i;
+  save(KEY_SESSION, session);
+  showQuestion();
+}
+
+function trySubmit() {
+  const missing = session.order.length - Object.keys(session.answers).length;
+  const msg = missing > 0
+    ? `You have ${missing} unanswered question${missing > 1 ? "s" : ""}. Submit anyway?`
+    : "Submit your test now? You cannot change answers afterwards.";
+  openDialog({
+    title: "Submit test",
+    message: msg,
+    yesLabel: "Submit now",
+    noLabel: "Keep working",
+    onYes: () => { finishTest(false); }
+  });
+}
+
+function finishTest(timedOut) {
+  stopTimer();
+  closeDialog(false);
+  const s = session;
+  if (!s) return;
+  let score = 0;
+  const bySubject = {};                       // subject -> [correct, total]
+  const review = s.order.map((e, pos) => {
+    const q = SUBJECTS[e.sub].items[e.qi];
+    const given = s.answers[pos];
+    const ok = given === q.a;
+    if (ok) score++;
+    bySubject[e.sub] = bySubject[e.sub] || [0, 0];
+    bySubject[e.sub][1]++;
+    if (ok) bySubject[e.sub][0]++;
+    return { sub: SUBJECTS[e.sub].label, q: q.q, given: given === undefined ? null : q.o[given], correct: q.o[q.a], ok };
+  });
+  const usedSec = Math.min(CONFIG.testMinutes * 60, Math.round((Math.min(Date.now(), s.endsAt) - s.startedAt) / 1000));
+  const result = {
+    name: s.student.name, id: s.student.id, cls: s.student.cls,
+    dept: s.dept, score, total: s.order.length, usedSec, bySubject,
+    date: new Date().toISOString(), timedOut: !!timedOut
+  };
+  const all = load(KEY_RESULTS, []);
+  all.push(result);
+  save(KEY_RESULTS, all);
+  save(KEY_LAST, { result, review });
+  drop(KEY_SESSION);
+  session = null;
+  showResult();
+}
+
+/* ============================================================
+   8. SCREEN: RESULT
+   ============================================================ */
+function showResult() {
+  const last = load(KEY_LAST, null);
+  if (!last) return showLogin();
+  const { result: r, review } = last;
+  const pct = Math.round(r.score / r.total * 100);
+  app.innerHTML = `
+    <section class="panel" style="border-top:6px solid ${QUESTION_BANK[r.dept].color}">
+      <h1>${r.timedOut ? "Time is up" : "Test submitted"}</h1>
+      <p>${esc(r.name)} &middot; ${esc(r.cls)} &middot; ${esc(QUESTION_BANK[r.dept].label)}</p>
+      <div class="score">${r.score}<span class="hint" style="font-size:1.4rem"> / ${r.total}</span></div>
+      <p class="hint">${pct}% &middot; time used ${fmt(r.usedSec)}</p>
+      <ul style="padding-left:1.1rem">${Object.entries(r.bySubject || {}).map(([k, v]) =>
+        `<li>${esc(SUBJECTS[k] ? SUBJECTS[k].label : k)}: <b>${v[0]} / ${v[1]}</b></li>`).join("")}</ul>
+      <div class="row">
+        <button class="btn" data-action="logout">Finish</button>
+        <button class="btn ghost" data-action="print">Print result</button>
+      </div>
+      <h2 style="margin-top:1.5rem">Your answers</h2>
+      <ul class="review">
+        ${review.map((x, i) => `
+          <li class="${x.ok ? "ok" : "bad"}">
+            <b>${i + 1}. ${esc(x.q)}</b> <span class="hint">(${esc(x.sub || "")})</span>
+            <div class="ans">Your answer: ${x.given === null ? "<i>not answered</i>" : esc(x.given)}${x.ok ? "" : " &middot; Correct answer: " + esc(x.correct)}</div>
+          </li>`).join("")}
+      </ul>
+    </section>`;
+  const heading = app.querySelector("h1");
+  heading.tabIndex = -1;
+  heading.focus();
+}
+
+/* ============================================================
+   9. TEACHER AREA  (PIN protected, view and export results)
+   ============================================================ */
+function teacherLogin() {
+  openDialog({
+    title: "Teacher access",
+    message: "Enter the teacher PIN to view results.",
+    input: true,
+    yesLabel: "Open results",
+    onYes: pin => {
+      if (String(pin).trim() !== String(CONFIG.teacherPin)) {
+        document.getElementById("dlgErr").textContent = "Incorrect PIN. Try again.";
+        return false;               // keep the dialog open
+      }
+      showTeacher();
+    }
+  });
+}
+
+function showTeacher() {
+  const rows = load(KEY_RESULTS, []);
+  app.innerHTML = `
+    <section class="panel">
+      <div class="row between">
+        <h1>Results</h1>
+        <button class="btn ghost" data-action="logout">Back to login</button>
+      </div>
+      <p class="hint">${rows.length} result${rows.length === 1 ? "" : "s"} saved on this device.</p>
+      <div class="row">
+        <button class="btn" data-action="export" ${rows.length ? "" : "disabled"}>Export CSV</button>
+        <button class="btn danger" data-action="clear" ${rows.length ? "" : "disabled"}>Clear all results</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <caption class="visually-hidden">Saved student test results</caption>
+          <thead><tr><th scope="col">Name</th><th scope="col">ID</th><th scope="col">Class</th><th scope="col">Department</th><th scope="col">Score</th><th scope="col">By subject</th><th scope="col">Time used</th><th scope="col">Date</th></tr></thead>
+          <tbody>
+            ${rows.slice().reverse().map(r => `
+              <tr><td>${esc(r.name)}</td><td>${esc(r.id)}</td><td>${esc(r.cls)}</td>
+                  <td>${esc(QUESTION_BANK[r.dept] ? QUESTION_BANK[r.dept].label : r.dept)}</td>
+                  <td>${r.score}/${r.total}</td><td>${esc(subjectText(r))}</td><td>${fmt(r.usedSec)}${r.timedOut ? " (timed out)" : ""}</td>
+                  <td>${esc(new Date(r.date).toLocaleString())}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>`;
+  const heading = app.querySelector("h1");
+  heading.tabIndex = -1;
+  heading.focus();
+}
+
+function exportCsv() {
+  const rows = load(KEY_RESULTS, []);
+  const cell = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [["Name", "Student ID", "Class", "Department", "Score", "Total", "Percent", "By subject", "Seconds used", "Timed out", "Date"].map(cell).join(",")];
+  rows.forEach(r => lines.push([
+    r.name, r.id, r.cls, QUESTION_BANK[r.dept] ? QUESTION_BANK[r.dept].label : r.dept,
+    r.score, r.total, Math.round(r.score / r.total * 100) + "%", subjectText(r), r.usedSec, r.timedOut ? "Yes" : "No", r.date
+  ].map(cell).join(",")));
+  // The BOM at the start makes Excel read the file as UTF-8
+  const text = "\ufeff" + lines.join("\r\n");
+  const a = document.createElement("a");
+  let blobUrl = null;
+  try {
+    blobUrl = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+    a.href = blobUrl;
+  } catch (e) {
+    // Fallback for browsers without Blob URLs
+    a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(text);
+  }
+  a.download = "test-results-" + new Date().toISOString().slice(0, 10) + ".csv";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { if (blobUrl) URL.revokeObjectURL(blobUrl); a.remove(); }, 500);
+}
+
+/* ============================================================
+   10. EVENTS
+   ============================================================ */
+app.addEventListener("click", e => {
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  switch (el.dataset.action) {
+    case "login": doLogin(); break;
+    case "logout": drop(KEY_LAST); showLogin(); break;
+    case "teacher-login": teacherLogin(); break;
+    case "pick": startTest(el.dataset.dept); break;
+    case "prev": goTo(session.idx - 1); break;
+    case "next": goTo(session.idx + 1); break;
+    case "goto": goTo(Number(el.dataset.i)); break;
+    case "submit": trySubmit(); break;
+    case "print": window.print(); break;
+    case "export": exportCsv(); break;
+    case "clear":
+      openDialog({
+        title: "Clear all results",
+        message: "Delete ALL saved results on this device? Export the CSV first. This cannot be undone.",
+        yesLabel: "Delete everything",
+        danger: true,
+        onYes: () => { drop(KEY_RESULTS); showTeacher(); }
+      });
+      break;
+  }
+});
+
+app.addEventListener("change", e => {
+  if (e.target.matches('input[name="answer"]')) setAnswer(Number(e.target.value));
+});
+
+document.addEventListener("keydown", e => {
+  // Enter submits the login form
+  if (e.key === "Enter" && document.getElementById("sid") && document.activeElement && ["name", "sid"].includes(document.activeElement.id)) {
+    return doLogin();
+  }
+  if (!session) return;
+  if (e.target.closest("input, select, textarea, button, [contenteditable='true']")) return;
+  const k = e.key.toLowerCase();
+  if ("abcd".includes(k) && k.length === 1) {
+    const entry = session.order[session.idx];
+    const shown = "abcd".indexOf(k);
+    if (shown < entry.opts.length) setAnswer(entry.opts[shown]);
+  } else if (e.key === "ArrowRight") goTo(session.idx + 1);
+  else if (e.key === "ArrowLeft") goTo(session.idx - 1);
+});
+
+/* ============================================================
+   11. START-UP  (resume an unfinished test after a refresh)
+   ============================================================ */
+(function init() {
+  if (!storageWorks) {
+    const w = document.createElement("div");
+    w.className = "storage-warn";
+    w.setAttribute("role", "status");
+    w.setAttribute("aria-live", "polite");
+    w.textContent = "This browser is blocking saved data. The test works, but results are lost if this page is closed or refreshed. Open the file in Chrome or Edge to keep results.";
+    document.body.insertBefore(w, document.querySelector(".brand"));
+  }
+  const saved = load(KEY_SESSION, null);
+  if (saved && saved.order && saved.order[0] && saved.order[0].sub && saved.endsAt) resumeSession(saved);
+  else if (saved) { drop(KEY_SESSION); showLogin(); }
+  else showLogin();
+})();
+</script>
+</body>
+</html>
