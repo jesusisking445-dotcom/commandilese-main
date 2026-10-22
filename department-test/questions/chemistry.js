@@ -63,5 +63,25 @@ addSubject("chemistry", "Chemistry", [
   Q("What is the pH of a neutral aqueous solution at 25°C?", ["0", "7", "10", "14"], 1),
   Q("Which subatomic particle has a negative charge?", ["Proton", "Neutron", "Electron", "Nucleus"], 2),
   Q("What is the formula of sodium chloride?", ["NaCl", "Na₂Cl", "SCl", "NaCl₂"], 0),
-  Q("Which element has the chemical symbol Fe?", ["Fluorine", "Iron", "Francium", "Fermium"], 1)
+  Q("Which element has the chemical symbol Fe?", ["Fluorine", "Iron", "Francium", "Fermium"], 1),
+  Q("The diagram shows a particle of which element?", ["Helium", "Lithium", "Carbon", "Oxygen"], 0, `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="190" viewBox="0 0 280 190" role="img" aria-label="Atom diagram with two protons and two neutrons in the nucleus and two electrons in the first shell">
+    <circle cx="140" cy="95" r="62" fill="none" stroke="#2454d6" stroke-width="2"/>
+    <circle cx="140" cy="95" r="23" fill="#e3f4ec" stroke="#14213d" stroke-width="2"/>
+    <circle cx="132" cy="89" r="6" fill="#b3261e"/><circle cx="148" cy="89" r="6" fill="#b3261e"/>
+    <circle cx="132" cy="102" r="6" fill="#4a5673"/><circle cx="148" cy="102" r="6" fill="#4a5673"/>
+    <circle cx="78" cy="95" r="6" fill="#2454d6"/><circle cx="202" cy="95" r="6" fill="#2454d6"/>
+    <text x="140" y="174" text-anchor="middle" font-size="14" fill="#14213d">Protons: red · Neutrons: grey · Electrons: blue</text>
+  </svg>`),
+  Q("In the apparatus diagram, which process separates a mixture of coloured dyes?", ["Filtration", "Simple distillation", "Paper chromatography", "Evaporation to dryness"], 2, `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="190" viewBox="0 0 300 190" role="img" aria-label="Paper chromatography setup with a strip of paper dipping in solvent in a beaker">
+    <path d="M65 60V155Q65 165 75 165H225Q235 165 235 155V60" fill="#fff" stroke="#14213d" stroke-width="3"/>
+    <path d="M68 125H232V155Q232 162 224 162H76Q68 162 68 155Z" fill="#dcecff"/>
+    <path d="M130 25V137" stroke="#4a5673" stroke-width="15"/>
+    <path d="M130 44V115" stroke="#fff" stroke-width="10"/>
+    <circle cx="130" cy="110" r="5" fill="#b3261e"/>
+    <circle cx="130" cy="83" r="5" fill="#2454d6"/>
+    <circle cx="130" cy="62" r="5" fill="#0b7a4b"/>
+    <path d="M105 137H155" stroke="#14213d" stroke-width="2"/>
+    <text x="150" y="150" font-size="13" fill="#14213d">Solvent</text>
+    <text x="140" y="35" font-size="13" fill="#14213d">Paper</text>
+  </svg>`)
 ]);

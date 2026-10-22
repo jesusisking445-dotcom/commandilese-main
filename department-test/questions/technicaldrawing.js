@@ -52,5 +52,24 @@ addSubject("technicaldrawing", "Technical Drawing", [
   Q("A line perpendicular to another line meets it at:", ["90°", "45°", "60°", "180°"], 0),
   Q("The locus of points at a constant distance from a fixed point is a:", ["Circle", "Straight line", "Triangle", "Parabola"], 0),
   Q("The fixed point from which points on a circle are equally distant is its:", ["Centre", "Focus", "Vertex", "Tangent"], 0),
-  Q("A gear is used to transmit:", ["Rotary motion and force", "Electrical charge only", "Heat through a wall", "Sound in a vacuum"], 0)
+  Q("A gear is used to transmit:", ["Rotary motion and force", "Electrical charge only", "Heat through a wall", "Sound in a vacuum"], 0),
+  Q("Which view in the diagram is the plan view?", ["A", "B", "C", "D"], 1, `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="190" viewBox="0 0 340 190" role="img" aria-label="Three orthographic views of a stepped block, labelled A front, B top, and C side">
+    <g fill="#fff" stroke="#14213d" stroke-width="2">
+      <path d="M35 85H95V55H135V115H35Z"/>
+      <path d="M35 130H95V115H135V160H35Z"/>
+      <path d="M175 55H245V115H175Z"/>
+    </g>
+    <path d="M95 55V115M175 85H245M95 130V160" stroke="#14213d" stroke-width="2"/>
+    <text x="84" y="125" text-anchor="middle" font-size="15" fill="#14213d">A</text>
+    <text x="84" y="178" text-anchor="middle" font-size="15" fill="#14213d">B</text>
+    <text x="255" y="88" text-anchor="middle" font-size="15" fill="#14213d">C</text>
+  </svg>`),
+  Q("In the isometric sketch, which edge is vertical?", ["Edge AB", "Edge BC", "Edge CD", "Edge DA"], 0, `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="200" viewBox="0 0 280 200" role="img" aria-label="Isometric cube with vertices A, B, C, D labelled around its front-left vertical edge">
+    <path d="M75 75L145 35L215 75L145 115ZM75 75V155L145 195V115M215 75V155L145 195" fill="#eaf3ff" stroke="#14213d" stroke-width="2"/>
+    <path d="M75 75L145 115L215 75M145 115V195" fill="none" stroke="#14213d" stroke-width="2"/>
+    <text x="60" y="74" font-size="16" fill="#14213d">A</text>
+    <text x="60" y="160" font-size="16" fill="#14213d">B</text>
+    <text x="150" y="119" font-size="16" fill="#14213d">C</text>
+    <text x="150" y="193" font-size="16" fill="#14213d">D</text>
+  </svg>`)
 ]);

@@ -24,6 +24,7 @@
     (mathematics.js, english.js, ...). Open a file in Notepad, edit or add lines like
         Q("What is 2 + 2?", ["3", "4", "5", "6"], 1),
     where the last number is the position of the correct option (0 = first).
+    Add an optional fourth argument containing inline SVG markup for a diagram.
     The "questions" folder must stay next to this index.html file.
   - Which subjects each department writes: edit QUESTION_BANK below.
   - A brand-new subject: add a file questions/newsubject.js, add a matching
@@ -116,6 +117,8 @@
 
   .qcount { color: var(--ink-soft); font-weight: 600; margin-bottom: .4rem; }
   .question-text { font-size: 1.2rem; margin: 0 0 1rem; }
+  .question-diagram { margin: 0 0 1.25rem; padding: .75rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .question-diagram svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
   .opts { display: grid; gap: .6rem; min-width: 0; border: 0; padding: 0; margin: 0 0 1.25rem; }
   .opt {
     display: flex; gap: .8rem; align-items: flex-start; text-align: left; cursor: pointer; width: 100%;
@@ -205,7 +208,7 @@
 
 <script>
 /* Question loader: each file in questions/ calls addSubject(...) to register itself. */
-const Q = (q, o, a) => ({ q, o, a });
+const Q = (q, o, a, diagram = null) => ({ q, o, a, diagram });
 const SUBJECTS = {};
 function addSubject(key, label, items) { SUBJECTS[key] = { label, items }; }
 </script>
@@ -238,7 +241,8 @@ const CONFIG = {
    Every department has 5 subjects. Each subject draws up to
    questionsPerSubject questions from its file in the questions folder.
    Add MORE than 20 questions to a subject and each student gets a different
-   random selection of 20. Add a question with:  Q("text", ["A","B","C","D"], indexOfCorrect)
+   random selection of 20. Subjects with diagrams include at least one in each test.
+   Add a question with:  Q("text", ["A","B","C","D"], indexOfCorrect, optionalSvgDiagram)
    (indexOfCorrect is 0 for the first option, 1 for the second, ...).
    Subjects shared by departments (Mathematics, English, Physics, Chemistry,
    Government) use ONE bank, so add questions once.
@@ -372,9 +376,9 @@ function subjectText(r) {
   return Object.entries(r.bySubject || {})
     .map(([k, v]) => (SUBJECTS[k] ? SUBJECTS[k].label : k) + " " + v[0] + "/" + v[1]).join("; ");
 }
-function normId(id) { return id.trim().toUpperCase(); }
+function normName(name) { return name.trim().replace(/\s+/g, " ").toLocaleLowerCase(); }
 
-let student = null;      // { name, id, cls } while logged in
+let student = null;      // { name, cls } while logged in
 let session = null;      // active test state
 let tickHandle = null;
 
@@ -391,8 +395,6 @@ function showLogin(msg) {
       <p class="error" id="err" role="alert" aria-live="assertive">${esc(msg || "")}</p>
       <div class="field"><label for="name">Full name</label>
         <input type="text" id="name" autocomplete="name" required minlength="3" aria-describedby="err" placeholder="Surname first, e.g. Adeyemi Tola"></div>
-      <div class="field"><label for="sid">Student ID or admission number</label>
-        <input type="text" id="sid" autocomplete="off" required minlength="2" aria-describedby="err"></div>
       <div class="field"><label for="cls">Class</label>
         <select id="cls" required>
           ${["JSS 1","JSS 2","JSS 3","SS 1","SS 2","SS 3"].map(c => `<option>${c}</option>`).join("")}
@@ -405,19 +407,19 @@ function showLogin(msg) {
 
 function doLogin() {
   const name = document.getElementById("name").value.trim().replace(/\s+/g, " ");
-  const id = normId(document.getElementById("sid").value);
   const cls = document.getElementById("cls").value;
   if (name.length < 3) return showLogin("Enter your full name.");
-  if (id.length < 2) return showLogin("Enter your student ID or admission number.");
-  student = { name, id, cls };
+  student = { name, cls };
   showDepartments();
 }
 
 /* ============================================================
    6. SCREEN: DEPARTMENT CHOICE
    ============================================================ */
-function hasAttempt(id, dept) {
-  return load(KEY_RESULTS, []).some(r => r.id === id && r.dept === dept);
+function hasAttempt(student, dept) {
+  return load(KEY_RESULTS, []).some(r =>
+    normName(r.name || "") === normName(student.name) && r.cls === student.cls && r.dept === dept
+  );
 }
 
 function showDepartments(msg) {
@@ -431,7 +433,7 @@ function showDepartments(msg) {
           <button class="dept" style="--c:${d.color}" data-action="pick" data-dept="${key}">
             <h2>${esc(d.label)}</h2>
             <p>${esc(d.blurb)}</p>
-            ${CONFIG.oneAttemptPerDepartment && hasAttempt(student.id, key) ? "<small>Already completed</small>" : ""}
+            ${CONFIG.oneAttemptPerDepartment && hasAttempt(student, key) ? "<small>Already completed</small>" : ""}
           </button>`).join("")}
       </div>
       <p class="hint">5 subjects, up to ${CONFIG.questionsPerSubject} questions each. ${CONFIG.testMinutes} minutes in total. The test submits itself when time runs out.</p>
@@ -446,7 +448,7 @@ function showDepartments(msg) {
    7. TEST ENGINE
    ============================================================ */
 function startTest(deptKey) {
-  if (CONFIG.oneAttemptPerDepartment && hasAttempt(student.id, deptKey)) {
+  if (CONFIG.oneAttemptPerDepartment && hasAttempt(student, deptKey)) {
     return showDepartments("You have already taken the " + QUESTION_BANK[deptKey].label + " test. Ask your teacher if you need a retake.");
   }
   const missing = QUESTION_BANK[deptKey].subjects.filter(k => !SUBJECTS[k]);
@@ -458,7 +460,13 @@ function startTest(deptKey) {
   dept.subjects.forEach(sub => {
     const bank = SUBJECTS[sub].items;
     const pool = bank.map((_, i) => i);
-    (CONFIG.shuffle ? shuffled(pool) : pool).slice(0, CONFIG.questionsPerSubject).forEach(qi => {
+    const selected = (CONFIG.shuffle ? shuffled(pool) : pool).slice(0, CONFIG.questionsPerSubject);
+    const diagramPool = pool.filter(qi => bank[qi].diagram);
+    if (selected.length && diagramPool.length && !selected.some(qi => bank[qi].diagram)) {
+      const replaceAt = CONFIG.shuffle ? Math.floor(Math.random() * selected.length) : selected.length - 1;
+      selected[replaceAt] = diagramPool[Math.floor(Math.random() * diagramPool.length)];
+    }
+    selected.forEach(qi => {
       const opts = bank[qi].o.map((_, i) => i);
       order.push({ sub, qi, opts: CONFIG.shuffle ? shuffled(opts) : opts });   // sub, question, option display order
     });
@@ -519,13 +527,14 @@ function showQuestion() {
     <section class="panel" style="border-top:6px solid ${d.color}">
       <h1 class="visually-hidden">${esc(d.label)} test</h1>
       <div class="topbar">
-        <div><b>${esc(d.label)} test</b><div class="who">${esc(session.student.name)} &middot; ${esc(session.student.id)}</div></div>
+        <div><b>${esc(d.label)} test</b><div class="who">${esc(session.student.name)} &middot; ${esc(session.student.cls)}</div></div>
         <div class="timer" id="timer" role="timer" aria-label="Time remaining">--:--</div>
       </div>
       <div class="bar" id="bar" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="${CONFIG.testMinutes * 60}" aria-valuenow="${CONFIG.testMinutes * 60}"><div></div></div>
 
       <div class="qcount" id="qcount" tabindex="-1" aria-live="polite" aria-atomic="true">${esc(SUBJECTS[entry.sub].label)} &middot; Question ${pos + 1} of ${session.order.length}</div>
       <h2 class="question-text">${esc(q.q)}</h2>
+      ${q.diagram ? `<figure class="question-diagram">${q.diagram}</figure>` : ""}
       <fieldset class="opts" aria-describedby="qcount">
         <legend class="visually-hidden">${esc(q.q)}</legend>
         ${entry.opts.map((orig, shown) => `
@@ -607,11 +616,11 @@ function finishTest(timedOut) {
     bySubject[e.sub] = bySubject[e.sub] || [0, 0];
     bySubject[e.sub][1]++;
     if (ok) bySubject[e.sub][0]++;
-    return { sub: SUBJECTS[e.sub].label, q: q.q, given: given === undefined ? null : q.o[given], correct: q.o[q.a], ok };
+    return { sub: SUBJECTS[e.sub].label, q: q.q, diagram: q.diagram, given: given === undefined ? null : q.o[given], correct: q.o[q.a], ok };
   });
   const usedSec = Math.min(CONFIG.testMinutes * 60, Math.round((Math.min(Date.now(), s.endsAt) - s.startedAt) / 1000));
   const result = {
-    name: s.student.name, id: s.student.id, cls: s.student.cls,
+    name: s.student.name, cls: s.student.cls,
     dept: s.dept, score, total: s.order.length, usedSec, bySubject,
     date: new Date().toISOString(), timedOut: !!timedOut
   };
@@ -649,6 +658,7 @@ function showResult() {
         ${review.map((x, i) => `
           <li class="${x.ok ? "ok" : "bad"}">
             <b>${i + 1}. ${esc(x.q)}</b> <span class="hint">(${esc(x.sub || "")})</span>
+            ${x.diagram ? `<figure class="question-diagram">${x.diagram}</figure>` : ""}
             <div class="ans">Your answer: ${x.given === null ? "<i>not answered</i>" : esc(x.given)}${x.ok ? "" : " &middot; Correct answer: " + esc(x.correct)}</div>
           </li>`).join("")}
       </ul>
@@ -693,10 +703,10 @@ function showTeacher() {
       <div class="tablewrap">
         <table>
           <caption class="visually-hidden">Saved student test results</caption>
-          <thead><tr><th scope="col">Name</th><th scope="col">ID</th><th scope="col">Class</th><th scope="col">Department</th><th scope="col">Score</th><th scope="col">By subject</th><th scope="col">Time used</th><th scope="col">Date</th></tr></thead>
+          <thead><tr><th scope="col">Name</th><th scope="col">Class</th><th scope="col">Department</th><th scope="col">Score</th><th scope="col">By subject</th><th scope="col">Time used</th><th scope="col">Date</th></tr></thead>
           <tbody>
             ${rows.slice().reverse().map(r => `
-              <tr><td>${esc(r.name)}</td><td>${esc(r.id)}</td><td>${esc(r.cls)}</td>
+              <tr><td>${esc(r.name)}</td><td>${esc(r.cls)}</td>
                   <td>${esc(QUESTION_BANK[r.dept] ? QUESTION_BANK[r.dept].label : r.dept)}</td>
                   <td>${r.score}/${r.total}</td><td>${esc(subjectText(r))}</td><td>${fmt(r.usedSec)}${r.timedOut ? " (timed out)" : ""}</td>
                   <td>${esc(new Date(r.date).toLocaleString())}</td></tr>`).join("")}
@@ -712,9 +722,9 @@ function showTeacher() {
 function exportCsv() {
   const rows = load(KEY_RESULTS, []);
   const cell = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const lines = [["Name", "Student ID", "Class", "Department", "Score", "Total", "Percent", "By subject", "Seconds used", "Timed out", "Date"].map(cell).join(",")];
+  const lines = [["Name", "Class", "Department", "Score", "Total", "Percent", "By subject", "Seconds used", "Timed out", "Date"].map(cell).join(",")];
   rows.forEach(r => lines.push([
-    r.name, r.id, r.cls, QUESTION_BANK[r.dept] ? QUESTION_BANK[r.dept].label : r.dept,
+    r.name, r.cls, QUESTION_BANK[r.dept] ? QUESTION_BANK[r.dept].label : r.dept,
     r.score, r.total, Math.round(r.score / r.total * 100) + "%", subjectText(r), r.usedSec, r.timedOut ? "Yes" : "No", r.date
   ].map(cell).join(",")));
   // The BOM at the start makes Excel read the file as UTF-8
@@ -769,7 +779,7 @@ app.addEventListener("change", e => {
 
 document.addEventListener("keydown", e => {
   // Enter submits the login form
-  if (e.key === "Enter" && document.getElementById("sid") && document.activeElement && ["name", "sid"].includes(document.activeElement.id)) {
+  if (e.key === "Enter" && document.getElementById("name") && document.activeElement && ["name", "cls"].includes(document.activeElement.id)) {
     return doLogin();
   }
   if (!session) return;

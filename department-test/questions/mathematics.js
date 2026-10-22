@@ -52,5 +52,20 @@ addSubject("mathematics", "Mathematics", [
   Q("A car travels 150 km in 3 hours. What is its average speed?", ["30 km/h", "50 km/h", "75 km/h", "450 km/h"], 1),
   Q("A right-angled triangle has shorter sides 6 cm and 8 cm. Its hypotenuse is:", ["10 cm", "12 cm", "14 cm", "48 cm"], 0),
   Q("The volume of a cuboid 4 cm by 3 cm by 5 cm is:", ["12 cm³", "20 cm³", "47 cm³", "60 cm³"], 3),
-  Q("The volume of a cube with side 3 cm is:", ["9 cm³", "18 cm³", "27 cm³", "36 cm³"], 2)
+  Q("The volume of a cube with side 3 cm is:", ["9 cm³", "18 cm³", "27 cm³", "36 cm³"], 2),
+  Q("Use the diagram to find the area of the rectangle.", ["12 cm²", "20 cm²", "24 cm²", "28 cm²"], 2, `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150" role="img" aria-label="Rectangle with sides labelled 6 centimetres and 4 centimetres">
+    <rect x="70" y="30" width="160" height="90" fill="#e3f4ec" stroke="#14213d" stroke-width="3"/>
+    <text x="150" y="24" text-anchor="middle" font-size="16" fill="#14213d">6 cm</text>
+    <text x="240" y="80" text-anchor="start" font-size="16" fill="#14213d">4 cm</text>
+  </svg>`),
+  Q("In the coordinate diagram, what is the y-coordinate of point P?", ["−2", "−1", "2", "3"], 3, `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="190" viewBox="0 0 300 190" role="img" aria-label="Coordinate axes with point P plotted at coordinates 2 comma 3">
+    <path d="M40 150H260M80 175V25" stroke="#14213d" stroke-width="2"/>
+    <path d="M120 150V50H80" fill="none" stroke="#0b7a4b" stroke-width="2" stroke-dasharray="5 4"/>
+    <circle cx="120" cy="50" r="5" fill="#b3261e"/>
+    <text x="130" y="45" font-size="16" fill="#14213d">P</text>
+    <text x="112" y="170" font-size="14" fill="#14213d">2</text>
+    <text x="56" y="56" font-size="14" fill="#14213d">3</text>
+    <text x="265" y="155" font-size="14" fill="#14213d">x</text>
+    <text x="75" y="20" font-size="14" fill="#14213d">y</text>
+  </svg>`)
 ]);

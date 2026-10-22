@@ -52,5 +52,24 @@ addSubject("physics", "Physics", [
   Q("In a parallel circuit, the potential difference across each branch is:", ["The same", "Always zero", "Different in every branch", "Equal to the total resistance"], 0),
   Q("Electrical resistance is measured in:", ["Ohms", "Volts", "Amperes", "Watts"], 0),
   Q("A fuse protects a circuit by:", ["Melting when excessive current flows", "Increasing the supply voltage", "Storing electrical charge", "Reducing the wire length"], 0),
-  Q("Like magnetic poles:", ["Repel each other", "Attract each other", "Have no effect", "Always become neutral"], 0)
+  Q("Like magnetic poles:", ["Repel each other", "Attract each other", "Have no effect", "Always become neutral"], 0),
+  Q("In the circuit shown, what is the reading of the ammeter?", ["0.5 A", "1 A", "2 A", "6 A"], 2, `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="170" viewBox="0 0 340 170" role="img" aria-label="A 6 volt battery connected in series to a 3 ohm resistor and an ammeter">
+    <path d="M55 45H285V125H55Z" fill="none" stroke="#14213d" stroke-width="3"/>
+    <path d="M55 70V100" stroke="#14213d" stroke-width="4"/>
+    <path d="M67 78V92" stroke="#14213d" stroke-width="2"/>
+    <text x="35" y="87" font-size="15" fill="#14213d">6 V</text>
+    <rect x="125" y="32" width="72" height="26" rx="3" fill="#fff" stroke="#14213d" stroke-width="2"/>
+    <text x="161" y="51" text-anchor="middle" font-size="15" fill="#14213d">3 Ω</text>
+    <circle cx="245" cy="125" r="18" fill="#fff" stroke="#14213d" stroke-width="2"/>
+    <text x="245" y="131" text-anchor="middle" font-size="17" fill="#14213d">A</text>
+  </svg>`),
+  Q("Which ray diagram shows light refracting towards the normal as it enters glass from air?", ["Diagram A", "Diagram B", "Diagram C", "Diagram D"], 0, `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="180" viewBox="0 0 340 180" role="img" aria-label="Light ray entering glass from air and bending towards the normal">
+    <rect x="35" y="91" width="270" height="65" fill="#eaf3ff"/>
+    <path d="M25 90H315M170 25V158" stroke="#14213d" stroke-width="2" stroke-dasharray="6 4"/>
+    <path d="M95 35L170 90L195 150" fill="none" stroke="#b3261e" stroke-width="3"/>
+    <path d="M95 35L112 44L104 50" fill="#b3261e"/>
+    <text x="45" y="80" font-size="15" fill="#14213d">Air</text>
+    <text x="45" y="120" font-size="15" fill="#14213d">Glass</text>
+    <text x="180" y="36" font-size="15" fill="#14213d">Normal</text>
+  </svg>`)
 ]);
