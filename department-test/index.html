@@ -220,6 +220,7 @@ function addSubject(key, label, items) { SUBJECTS[key] = { label, items }; }
 <script src="questions/accounting.js"></script>
 <script src="questions/commerce.js"></script>
 <script src="questions/government.js"></script>
+<script src="questions/economics.js"></script>
 <script src="questions/literature.js"></script>
 <script src="questions/history.js"></script>
 <script src="questions/technicaldrawing.js"></script>
@@ -253,8 +254,8 @@ const QUESTION_BANK = {
                 subjects: ["mathematics", "english", "physics", "biology", "chemistry"] },
   humanities: { label: "Humanities",           color: "#7a3e8e", blurb: "English, Mathematics, Literature in English, Government, History.",
                 subjects: ["english", "mathematics", "literature", "government", "history"] },
-  business:   { label: "Business / Commercial", color: "#b7791f", blurb: "Mathematics, English, Accounting, Commerce, Government.",
-                subjects: ["mathematics", "english", "accounting", "commerce", "government"] },
+  business:   { label: "Business / Commercial", color: "#b7791f", blurb: "Mathematics, English, Accounting, Commerce, Economics.",
+                subjects: ["mathematics", "english", "accounting", "commerce", "economics"] },
   technology: { label: "Technology",           color: "#2454d6", blurb: "Mathematics, English, Physics, Chemistry, Technical Drawing.",
                 subjects: ["mathematics", "english", "physics", "chemistry", "technicaldrawing"] }
 };
@@ -653,7 +654,7 @@ function showResult() {
         <button class="btn" data-action="logout">Finish</button>
         <button class="btn ghost" data-action="print">Print result</button>
       </div>
-      <h2 style="margin-top:1.5rem">Your answers</h2>
+      <h2 style="margin-top:1.5rem">Correction</h2>
       <ul class="review">
         ${review.map((x, i) => `
           <li class="${x.ok ? "ok" : "bad"}">
